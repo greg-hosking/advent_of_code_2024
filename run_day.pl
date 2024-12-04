@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use lib 'C:\advent_of_code_2024';
 
 my $iDay;
 my $iPart;
@@ -13,60 +14,54 @@ GetOptions(
 die "Please provide a valid day number (1-25)\n" unless $iDay >= 1 && $iDay <= 25;
 die "Please provide a valid part number (1 or 2)\n" unless $iPart == 1 || $iPart == 2;
 
-my $sDayModule = "Day" . sprintf("%02d", $iDay);
-eval "use $sDayModule";
+my $sDayDir          = "C:/advent_of_code_2024/day" . sprintf("%02d", $iDay);
+eval "use lib '$sDayDir'";
+
+my $sDayMod = "Day" . sprintf("%02d", $iDay);
+eval "use $sDayMod";
 if ($@) {
-    die "Failed to load class for $sDayModule: $@";
+    die "Failed to load class for $sDayMod: $@";
 }
 
-my $sDayDir      = "C:/advent_of_code_2024/day" . sprintf("%02d", $iDay);
-my $exampleFile  = "$sDayDir/example.txt";
-my $inputFile    = "$sDayDir/input.txt";
-my $exampleOut   = "$sDayDir/example_output.txt";
+my $sExampleInputFn  = "$sDayDir/example_input.txt"; 
+my $sExampleOutputFn = "$sDayDir/example_output.txt";
+my $sInputFn         = "$sDayDir/input.txt";
 
-my $dayObject = $sDayModule->new(input_file => $inputFile);
-
-# Check if the method for the specified part is implemented
-my $method = $iPart == 1 ? 'part1' : 'part2';
-unless ($dayObject->can($method)) {
-    die "Error: Part $iPart is not implemented for Day $iDay. Please implement the '$method' method in $sDayModule.\n";
+my $oDay = $sDayMod->new();
+my $sPartSub = $iPart == 1 ? 'part1' : 'part2';
+unless ($oDay->can($sPartSub)) {
+    die "Error: Part $iPart is not implemented for Day $iDay. Please implement the '$sPartSub' sub in $sDayMod.\n";
 }
 
-# Read example output file
-open my $fh, '<', $exampleOut or die "Cannot open file $exampleOut: $!\n";
-my $expectedOutput = <$fh>;
+open my $fh, '<', $sExampleOutputFn or die "Cannot open file $sExampleOutputFn: $!\n";
+my $sExpectedOutput = <$fh>;
 close $fh;
-my ($expectedPart1, $expectedPart2) = split /\s+/, $expectedOutput;
-my $expectedResult = $iPart == 1 ? $expectedPart1 : $expectedPart2;
+my ($sExpectedPart1, $sExpectedPart2) = split /\s+/, $sExpectedOutput;
+my $sExpectedResult = $iPart == 1 ? $sExpectedPart1 : $sExpectedPart2;
 
-# Run the example
 print "Day $iDay, Part $iPart...\n";
 print "Running example...\n";
 
-my $exampleInput = do {
-    open my $fh, '<', $exampleFile or die "Cannot open file $exampleFile: $!\n";
-    local $/; # Slurp mode
+my $sExampleInput = do {
+    open my $fh, '<', $sExampleInputFn or die "Cannot open file $sExampleInputFn: $!\n";
+    local $/;
     <$fh>;
 };
 
-my $actualResult = $dayObject->$method($exampleInput);
+my $sActualResult = $oDay->$sPartSub($sExampleInput);
 
-if ($actualResult eq $expectedResult) {
+if ($sActualResult eq $sExpectedResult) {
     print "Example passed!\n";
-
-    # Run the actual input if the example passed
-    print "Running actual input...\n";
-
-    my $inputContent = do {
-        open my $fh, '<', $inputFile or die "Cannot open file $inputFile: $!\n";
-        local $/; # Slurp mode
+    print "Running input...\n";
+    my $sInput = do {
+        open my $fh, '<', $sInputFn or die "Cannot open file $sInputFn: $!\n";
+        local $/;
         <$fh>;
     };
-
-    my $finalResult = $dayObject->$method($inputContent);
+    my $finalResult = $oDay->$sPartSub($sInput);
     print "Result for Day $iDay, Part $iPart: $finalResult\n";
 } else {
     print "Example failed!\n";
-    print "Expected: $expectedResult\n";
-    print "Actual  : $actualResult\n";
+    print "Expected: $sExpectedResult\n";
+    print "Actual:   $sActualResult\n";
 }
