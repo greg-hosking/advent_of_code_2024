@@ -20,7 +20,7 @@ eval "use lib '$sDayDir'";
 my $sDayMod = "Day" . sprintf("%02d", $iDay);
 eval "use $sDayMod";
 if ($@) {
-    die "Failed to load class for $sDayMod: $@";
+    die "Error: Day $iDay is not implemented. Please implement the '$sDayMod' module in $sDayDir";
 }
 
 my $sExampleInputFn  = "$sDayDir/example_input.txt"; 
@@ -30,7 +30,7 @@ my $sInputFn         = "$sDayDir/input.txt";
 my $oDay = $sDayMod->new();
 my $sPartSub = $iPart == 1 ? 'part1' : 'part2';
 unless ($oDay->can($sPartSub)) {
-    die "Error: Part $iPart is not implemented for Day $iDay. Please implement the '$sPartSub' sub in $sDayMod.\n";
+    die "Error: Part $iPart is not implemented for Day $iDay. Please implement the '$sPartSub' sub in $sDayMod";
 }
 
 open my $fh, '<', $sExampleOutputFn or die "Cannot open file $sExampleOutputFn: $!\n";
