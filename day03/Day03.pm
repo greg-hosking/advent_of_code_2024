@@ -17,7 +17,19 @@ sub part1 {
     return $iSum;
 }
 
-# sub part2 {
-# }
+sub part2 {
+    my ($self, $sInput) = @_;
+    my @aMatches = $sInput =~ m/(mul\(\d+,\d+\)|do\(\)|don\'t\(\))/g;
+    my $iSum   = 0;
+    my $bDoMul = 1;
+    foreach my $sMatch (@aMatches) {
+        $bDoMul = 1 if ($sMatch =~ m/do\(\)/);
+        $bDoMul = 0 if ($sMatch =~ m/don\'t\(\)/);
+        if ($sMatch =~ m/mul\((\d+),(\d+)\)/) {
+            $iSum += ($1 * $2) if $bDoMul;
+        }
+    }
+    return $iSum;
+}
 
 1;
