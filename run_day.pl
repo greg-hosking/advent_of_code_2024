@@ -164,8 +164,8 @@ sub submit_answer {
         if ($sContent =~ /<article><p>(.*?)<\/p><\/article>/s) {
             my $sMessage = $1;
             $sMessage =~ s/<[^>]+>//g;
-            $sMessage =~ s/\[.*?\]//g;
-            $sMessage =~ s/\s+/ /g;
+            # $sMessage =~ s/\[.*?\]//g;
+            # $sMessage =~ s/\s+/ /g;
 
             print "[RESPONSE] $sMessage\n";
         }
