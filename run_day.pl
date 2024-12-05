@@ -7,129 +7,172 @@ use HTTP::Cookies;
 use Getopt::Long;
 use lib 'C:\advent_of_code_2024';
 
-my $iDay;
-my $iPart;
-GetOptions(
-    'day=i'  => \$iDay,
-    'part=i' => \$iPart,
-) or die "Usage: $0 --day <day_number> --part <part_number>\n";
+sub main {
+    my ($iDay, $iPart, $bExampleOnly) = parse_arguments();
 
-die "Please provide a valid day number (1-25)\n"
-  unless $iDay >= 1 && $iDay <= 25;
-die "Please provide a valid part number (1 or 2)\n"
-  unless $iPart == 1 || $iPart == 2;
+    # Load the module for the specific day
+    my $oDay = load_day_module($iDay, $iPart);
 
-my $sDayDir = "C:/advent_of_code_2024/day" . sprintf( "%02d", $iDay );
-eval "use lib '$sDayDir'";
+    # Parse example input/output
+    my $sExampleFn = "C:/advent_of_code_2024/day" . sprintf("%02d", $iDay) . "/example_part$iPart.txt";
+    my ($sExampleInput, $sExampleOutput) = parse_example($sExampleFn);
 
-my $sDayMod = "Day" . sprintf( "%02d", $iDay );
-eval "use $sDayMod";
-if ($@) {
-    die
-"Error: Day $iDay is not implemented. Please implement the '$sDayMod' module in $sDayDir";
+    print "\n===== Advent of Code 2024 =====\n";
+    print "Day $iDay, Part $iPart\n";
+    print "=================================\n";
+
+    print "\n[INFO] Running example...\n";
+    my $sPartSub = "part$iPart";
+    my $sExampleResult = $oDay->$sPartSub($sExampleInput);
+    if ($sExampleResult eq $sExampleOutput) {
+        print "[SUCCESS] Example passed!\n";
+
+        if ($bExampleOnly) {
+            print "[INFO] Running in example-only mode. Skipping puzzle input and answer submission.\n";
+            print "[INFO] Exiting...\n";
+            return;
+        }
+
+        print "[INFO] Fetching puzzle input...\n";
+        my $sInput = fetch_input($iDay);
+
+        print "[INFO] Running solution...\n";
+        my $sOutput = $oDay->$sPartSub($sInput);
+        print "\n[SOLUTION] Result for Day $iDay, Part $iPart:\n";
+        print "-----------------------------------\n";
+        print "$sOutput\n";
+        print "-----------------------------------\n";
+
+        print "\n[INFO] Submitting answer...\n";
+        submit_answer($iDay, $iPart, $sOutput);
+    } else {
+        print "[FAILURE] Example failed!\n";
+        print "[EXPECTED]: $sExampleOutput\n";
+        print "[ACTUAL]:   $sExampleResult\n";
+    }
 }
 
-my $sExampleInputFn  = "$sDayDir/example_input.txt";
-my $sExampleOutputFn = "$sDayDir/example_output.txt";
-my $sInputFn         = "$sDayDir/input.txt";
+sub parse_arguments {
+    my ($iDay, $iPart, $bExampleOnly, $bHelp);
+    GetOptions(
+        'day=i'        => \$iDay,
+        'part=i'       => \$iPart,
+        'example-only' => \$bExampleOnly,
+        'help'         => \$bHelp,
+    ) or show_usage();
 
-my $oDay = $sDayMod->new();
-my $sPartSub = $iPart == 1 ? 'part1' : 'part2';
-unless ( $oDay->can($sPartSub) ) {
-    die
-"Error: Part $iPart is not implemented for Day $iDay. Please implement the '$sPartSub' sub in $sDayMod";
+    show_help() if $bHelp;
+    show_usage() unless $iDay && $iDay >= 1 && $iDay <= 25;
+    show_usage() unless $iPart && ($iPart == 1 || $iPart == 2);
+
+    return ($iDay, $iPart, $bExampleOnly);
 }
 
-open my $fh, '<', $sExampleOutputFn
-  or die "Cannot open file $sExampleOutputFn: $!\n";
-my $sExpectedOutput = <$fh>;
-close $fh;
-my ( $sExpectedPart1, $sExpectedPart2 ) = split /\s+/, $sExpectedOutput;
-my $sExpectedResult = $iPart == 1 ? $sExpectedPart1 : $sExpectedPart2;
+sub show_usage {
+    print "Usage: perl run_day.pl --day <day_number> --part <part_number> [--example-only] [--help]\n";
+    exit;
+}
 
-print "Day $iDay, Part $iPart...\n";
-print "Running example...\n";
+sub show_help {
+    print <<'HELP';
+Usage: perl run_day.pl --day <day_number> --part <part_number> [OPTIONS]
 
-my $sExampleInput = do {
-    open my $fh, '<', $sExampleInputFn
-      or die "Cannot open file $sExampleInputFn: $!\n";
-    local $/;
-    <$fh>;
-};
+Options:
+  --day           Specify the day number (1-25).
+  --part          Specify the part number (1 or 2).
+  --example-only  Run only the example test and exit.
+  --help          Display this help message.
 
-my $sActualResult = $oDay->$sPartSub($sExampleInput);
-if ( $sActualResult eq $sExpectedResult ) {
-    print "Example passed!\n";
-    print "Running input...\n";
-    my $sInput = do {
-        open my $fh, '<', $sInputFn or die "Cannot open file $sInputFn: $!\n";
-        local $/;
-        <$fh>;
-    };
-    my $sFinalResult = $oDay->$sPartSub($sInput);
-    print "Result for Day $iDay, Part $iPart: $sFinalResult\n";
+Examples:
+  perl run_day.pl --day 3 --part 1
+  perl run_day.pl --day 5 --part 2 --example-only
 
-    print "Submitting answer...\n";
-    my $sSession = $ENV{'AOC_SESSION'};
-    if ( !$sSession ) {
-        die "Error: AOC_SESSION environment variable not set.\n"
-          . "Please set the AOC_SESSION environment variable with your Advent of Code session cookie.\n"
-          . "For Windows: set AOC_SESSION=YOUR_SESSION_COOKIE\n" 
-          . "For Linux:   export AOC_SESSION=YOUR_SESSION_COOKIE\n";
+HELP
+    exit;
+}
+
+sub load_day_module {
+    my ($iDay, $iPart) = @_;
+
+    my $sDayDir = "C:/advent_of_code_2024/day" . sprintf("%02d", $iDay);
+    eval "use lib '$sDayDir'";
+
+    my $sDayMod = "Day" . sprintf("%02d", $iDay);
+    eval "use $sDayMod";
+    if ($@) {
+        die "[ERROR] Day $iDay is not implemented. Please implement the '$sDayMod' module in $sDayDir\n";
     }
 
-    my $sUrl       = "https://adventofcode.com/2024/day/$iDay/answer";
-    my $oUserAgent = LWP::UserAgent->new;
-    $oUserAgent->cookie_jar( HTTP::Cookies->new );
-    $oUserAgent->max_redirect(3);    # Allow redirections
+    my $oDay = $sDayMod->new();
+    my $sPartSub = "part$iPart";
+    die "[ERROR] Part $iPart is not implemented for Day $iDay.\n" unless $oDay->can($sPartSub);
 
-    my $oReq = HTTP::Request->new( POST => $sUrl );
+    return $oDay;
+}
+
+sub parse_example {
+    my ($sFilename) = @_;
+    open my $fh, '<', $sFilename or die "[ERROR] Cannot open file $sFilename: $!\n";
+    local $/ = undef;
+    my $sContent = <$fh>;
+    close $fh;
+
+    my ($sInput)  = $sContent =~ /# Input:\s*(.*?)\s*# Output:/s;
+    my ($sOutput) = $sContent =~ /# Output:\s*(.+?)\s*$/s;
+
+    die "[ERROR] Invalid example file format in $sFilename\n" unless defined $sInput && defined $sOutput;
+    return ($sInput, $sOutput);
+}
+
+sub fetch_input {
+    my ($iDay) = @_;
+    my $sSession = $ENV{'AOC_SESSION'};
+    die "[ERROR] AOC_SESSION environment variable not set.\n"
+      . "Please set it with your Advent of Code session cookie.\n" unless $sSession;
+
+    my $sUrl = "https://adventofcode.com/2024/day/$iDay/input";
+    my $oUserAgent = LWP::UserAgent->new;
+    $oUserAgent->cookie_jar(HTTP::Cookies->new);
+
+    my $oReq = HTTP::Request->new(GET => $sUrl);
+    $oReq->header('Cookie' => "session=$sSession");
+
+    my $oResp = $oUserAgent->request($oReq);
+    die "[ERROR] Fetching input failed: " . $oResp->status_line . "\n" unless $oResp->is_success;
+
+    return $oResp->decoded_content;
+}
+
+sub submit_answer {
+    my ($iDay, $iPart, $sAnswer) = @_;
+    my $sSession = $ENV{'AOC_SESSION'};
+    die "[ERROR] AOC_SESSION environment variable not set.\n" unless $sSession;
+
+    my $sUrl = "https://adventofcode.com/2024/day/$iDay/answer";
+    my $oUserAgent = LWP::UserAgent->new;
+    $oUserAgent->cookie_jar(HTTP::Cookies->new);
+
+    my $oReq = HTTP::Request->new(POST => $sUrl);
     $oReq->content_type('application/x-www-form-urlencoded');
-    $oReq->header( 'Cookie' => "session=$sSession" );
-    $oReq->content("level=$iPart&answer=$sFinalResult");
+    $oReq->header('Cookie' => "session=$sSession");
+    $oReq->content("level=$iPart&answer=$sAnswer");
 
     my $oResp = $oUserAgent->request($oReq);
 
-    if ( $oResp->code == 303 ) {
-        my $sLocation = $oResp->header('Location');
-        if ($sLocation) {
-            print "Received redirect to: $sLocation\n";
-            my $oRedirectResp = $oUserAgent->get($sLocation);
-            if ( $oRedirectResp->is_success ) {
-                my $sContent = $oRedirectResp->decoded_content;
-                if ( $sContent =~ /<article><p>(.*?)<\/p><\/article>/s ) {
-                    my $sMessage = $1;
-                    $sMessage =~ s/<[^>]+>//g;
-                    $sMessage =~ s/\[Return to.*?\]//g;
-                    $sMessage =~ s/\s+/ /g;
-                    print "$sMessage\n";
-                }
-            }
-            else {
-                die "Error following redirect: "
-                  . $oRedirectResp->status_line . "\n";
-            }
-        }
-        else {
-            die "Error: No Location header found in 303 response.\n";
-        }
-    }
-    elsif ( $oResp->is_success ) {
+    if ($oResp->is_success) {
         my $sContent = $oResp->decoded_content;
-        if ( $sContent =~ /<article><p>(.*?)<\/p><\/article>/s ) {
+        if ($sContent =~ /<article><p>(.*?)<\/p><\/article>/s) {
             my $sMessage = $1;
             $sMessage =~ s/<[^>]+>//g;
-            $sMessage =~ s/\[Return to.*?\]//g;
+            $sMessage =~ s/\[.*?\]//g;
             $sMessage =~ s/\s+/ /g;
-            print "$sMessage\n";
+
+            print "[RESPONSE] $sMessage\n";
         }
-    }
-    else {
-        die "Error: " . $oResp->status_line . "\n";
+    } else {
+        die "[ERROR] Submitting answer failed: " . $oResp->status_line . "\n";
     }
 }
-else {
-    print "Example failed!\n";
-    print "Expected result: $sExpectedResult\n";
-    print "Actual result:   $sActualResult\n";
-}
+
+
+main();
