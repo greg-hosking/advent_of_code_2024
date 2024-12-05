@@ -55,7 +55,6 @@ my $sExampleInput = do {
       or die "Cannot open file $sExampleInputFn: $!\n";
     local $/;
     <$fh>;
-    close $fh;
 };
 
 my $sActualResult = $oDay->$sPartSub($sExampleInput);
@@ -66,7 +65,6 @@ if ( $sActualResult eq $sExpectedResult ) {
         open my $fh, '<', $sInputFn or die "Cannot open file $sInputFn: $!\n";
         local $/;
         <$fh>;
-        close $fh;
     };
     my $sFinalResult = $oDay->$sPartSub($sInput);
     print "Result for Day $iDay, Part $iPart: $sFinalResult\n";
