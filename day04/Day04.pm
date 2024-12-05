@@ -79,9 +79,35 @@ sub part1 {
     return $iCount;
 }
 
-# sub part2 {
-#     my ($self, $sInput) = @_;
-#     # Solution...
-# }
+sub part2 {
+    my ($self, $sInput) = @_;
+    my @aaGrid;
+    foreach my $sLine ( split( /\n/, $sInput ) ) {
+        my @asRow = split( //, $sLine );
+        push( @aaGrid, [@asRow] );
+    }
+
+    my $sWord    = "MAS";
+    my $sWordRev = reverse($sWord);
+    my $iCount   = 0;
+
+    my $iRows = scalar(@aaGrid);
+    my $iCols = scalar( @{ $aaGrid[0] } );
+
+    # Assume grid at least 3x3
+    my $iRowStart = 1;
+    my $iRowEnd   = $iRows - 2;
+    my $iColStart = 1;
+    my $iColEnd   = $iCols - 2;
+    for my $iRow ( $iRowStart .. $iRowEnd ) {
+        for my $iCol ( $iColStart .. $iColEnd ) {
+            my $sDiagDownRight = $aaGrid[$iRow-1]->[$iCol-1] . $aaGrid[$iRow]->[$iCol] . $aaGrid[$iRow+1]->[$iCol+1];
+            my $sDiagDownLeft  = $aaGrid[$iRow-1]->[$iCol+1] . $aaGrid[$iRow]->[$iCol] . $aaGrid[$iRow+1]->[$iCol-1];
+            $iCount++ if ($sDiagDownRight =~ /$sWord|$sWordRev/ && $sDiagDownLeft =~ /$sWord|$sWordRev/);
+        }
+    }
+
+    return $iCount;
+}
 
 1;
