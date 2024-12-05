@@ -101,6 +101,7 @@ sub part2 {
     my $iColEnd   = $iCols - 2;
     for my $iRow ( $iRowStart .. $iRowEnd ) {
         for my $iCol ( $iColStart .. $iColEnd ) {
+            next unless $aaGrid[$iRow]->[$iCol] eq "A";
             my $sDiagDownRight = $aaGrid[$iRow-1]->[$iCol-1] . $aaGrid[$iRow]->[$iCol] . $aaGrid[$iRow+1]->[$iCol+1];
             my $sDiagDownLeft  = $aaGrid[$iRow-1]->[$iCol+1] . $aaGrid[$iRow]->[$iCol] . $aaGrid[$iRow+1]->[$iCol-1];
             $iCount++ if ($sDiagDownRight =~ /$sWord|$sWordRev/ && $sDiagDownLeft =~ /$sWord|$sWordRev/);
