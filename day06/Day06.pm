@@ -50,9 +50,7 @@ sub part1 {
         my $sKey = $aGuardPos[0] . "," . $aGuardPos[1];
         $hSeen{$sKey} = 1;
         my @aTargetPos = ($aGuardPos[0] + $aGuardDir[0], $aGuardPos[1] + $aGuardDir[1]);
-        if ($aTargetPos[0] < 0 || $aTargetPos[0] > $iRows - 1 || $aTargetPos[1] < 0 || $aTargetPos[1] > $iCols - 1) {
-            last;
-        }
+        last if ($aTargetPos[0] < 0 || $aTargetPos[0] > $iRows - 1 || $aTargetPos[1] < 0 || $aTargetPos[1] > $iCols - 1);
         my $bTargetWalkable = $aaWalkable[$aTargetPos[0]]->[$aTargetPos[1]];
         if ($bTargetWalkable) {
             $aGuardPos[0] = $aTargetPos[0];
