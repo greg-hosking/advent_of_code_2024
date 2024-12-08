@@ -8,7 +8,7 @@ use Getopt::Long;
 use lib 'C:\advent_of_code_2024';
 
 sub main {
-    my ($iDay, $iPart, $bExampleOnly) = parse_arguments();
+    my ($iDay, $iPart, $bExampleOnly, $bNoSubmit) = parse_arguments();
 
     # Load the module for the specific day
     my $oDay = load_day_module($iDay, $iPart);
@@ -43,6 +43,12 @@ sub main {
         print "$sOutput\n";
         print "-----------------------------------\n";
 
+        if ($bNoSubmit) {
+            print "[INFO] Running in no-submit mode. Skipping answer submission.\n";
+            print "[INFO] Exiting...\n";
+            return;
+        }
+
         print "\n[INFO] Submitting answer...\n";
         submit_answer($iDay, $iPart, $sOutput);
     } else {
@@ -53,11 +59,12 @@ sub main {
 }
 
 sub parse_arguments {
-    my ($iDay, $iPart, $bExampleOnly, $bHelp);
+    my ($iDay, $iPart, $bExampleOnly, $bNoSubmit, $bHelp);
     GetOptions(
         'day=i'        => \$iDay,
         'part=i'       => \$iPart,
         'example-only' => \$bExampleOnly,
+        'no-submit'    => \$bNoSubmit,
         'help'         => \$bHelp,
     ) or show_usage();
 
@@ -65,7 +72,7 @@ sub parse_arguments {
     show_usage() unless $iDay && $iDay >= 1 && $iDay <= 25;
     show_usage() unless $iPart && ($iPart == 1 || $iPart == 2);
 
-    return ($iDay, $iPart, $bExampleOnly);
+    return ($iDay, $iPart, $bExampleOnly, $bNoSubmit);
 }
 
 sub show_usage {
