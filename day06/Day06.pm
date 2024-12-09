@@ -7,23 +7,28 @@ use parent 'Day';
 
 use Data::Dumper;
 
-# Rotate array representing 2d direction [r, c] 90 degrees clockwise
 sub turn_right {
     my ($paDir) = @_;
-    my @aDir = @$paDir;
-
-    my $iTemp = $aDir[1];
-    $aDir[0] *= -1;
-    $aDir[1] = $aDir[0];
-    $aDir[0] = $iTemp;
-
-    return \@aDir;
+    return [$paDir->[1], -1 * $paDir->[0]];
 }
 
 sub part1 {
     my ($self, $sInput) = @_;
 
     my %hSeen;
+
+    # TODO: ...
+    my %hGuard = (
+        "pos" => (
+            "r" => -1,
+            "c" => -1,
+        ),
+        "dir" => (
+            "r" => -1,
+            "c" => 0,
+        )
+    );
+
     my @aGuardPos;
     my @aGuardDir = (-1, 0); # Start pointing up
     my @aaWalkable;
