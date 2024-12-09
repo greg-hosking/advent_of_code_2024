@@ -17,7 +17,8 @@ sub main {
     my $sExampleFn = "C:/advent_of_code_2024/day" . sprintf("%02d", $iDay) . "/example_part$iPart.txt";
     my ($sExampleInput, $sExampleOutput) = parse_example($sExampleFn);
 
-    print "\n===== Advent of Code 2024 =====\n";
+    print "\n";
+    print "====== Advent of Code 2024 ======\n";
     print "Day $iDay, Part $iPart\n";
     print "=================================\n";
 
