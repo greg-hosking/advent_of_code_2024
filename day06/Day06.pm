@@ -14,23 +14,11 @@ sub turn_right {
 
 sub part1 {
     my ($self, $sInput) = @_;
-
     my %hSeen;
-
-    # TODO: ...
     my %hGuard = (
-        "pos" => (
-            "r" => -1,
-            "c" => -1,
-        ),
-        "dir" => (
-            "r" => -1,
-            "c" => 0,
-        )
+        "pos" => { "r" => -1, "c" => -1 },
+        "dir" => { "r" => -1, "c" => 0 },  # Starting direction (up)
     );
-
-    my @aGuardPos;
-    my @aGuardDir = (-1, 0); # Start pointing up
     my @aaWalkable;
     my @aLines = split(/\n/, $sInput);
     for my $ir ( 0 .. scalar(@aLines) - 1 ) {
@@ -38,9 +26,9 @@ sub part1 {
         my @aWalkable;
         for my $ic ( 0 .. scalar(@aRow) - 1 ) {
             if ($aRow[$ic] eq '^') {
-                @aGuardPos = ($ir, $ic);
-                push(@aWalkable, 1);
                 $hSeen{"$ir,$ic"} = 1;
+                $hGuard{"pos"} = { "r" => $ir, "c" => $ic };
+                push(@aWalkable, 1);
             } else {
                 my $bWalkable = ($aRow[$ic] eq '#') ? 0 : 1;
                 push(@aWalkable, $bWalkable);
@@ -51,26 +39,85 @@ sub part1 {
 
     my $iRows = scalar(@aaWalkable);
     my $iCols = scalar($aaWalkable[0]);
-    while ($aGuardPos[0] >= 0 && $aGuardPos[0] <= $iRows - 1 && $aGuardPos[1] >= 0 && $aGuardPos[1] <= $iCols - 1) {
-        my $sKey = $aGuardPos[0] . "," . $aGuardPos[1];
+    while ($hGuard{"pos"}{"r"} >= 0 && $hGuard{"pos"}{"r"} < $iRows
+        && $hGuard{"pos"}{"c"} >= 0 && $hGuard{"pos"}{"c"} < $iCols) {
+        my $sKey = $hGuard{"pos"}{"r"} . "," . $hGuard{"pos"}{"c"};
         $hSeen{$sKey} = 1;
-        my @aTargetPos = ($aGuardPos[0] + $aGuardDir[0], $aGuardPos[1] + $aGuardDir[1]);
-        last if ($aTargetPos[0] < 0 || $aTargetPos[0] > $iRows - 1 || $aTargetPos[1] < 0 || $aTargetPos[1] > $iCols - 1);
-        my $bTargetWalkable = $aaWalkable[$aTargetPos[0]]->[$aTargetPos[1]];
+        my $iTargetR = $hGuard{"pos"}{"r"} + $hGuard{"dir"}{"r"};
+        my $iTargetC = $hGuard{"pos"}{"c"} + $hGuard{"dir"}{"c"};
+        last if ($iTargetR < 0 || $iTargetR >= $iRows || $iTargetC < 0 || $iTargetC >= $iCols);
+        my $bTargetWalkable = $aaWalkable[$iTargetR]->[$iTargetC];
         if ($bTargetWalkable) {
-            $aGuardPos[0] = $aTargetPos[0];
-            $aGuardPos[1] = $aTargetPos[1];
+            $hGuard{"pos"}{"r"} = $iTargetR;
+            $hGuard{"pos"}{"c"} = $iTargetC;
         } else {
-            @aGuardDir = @{turn_right(\@aGuardDir)};
+            my ($newR, $newC) = @{turn_right([$hGuard{"dir"}{"r"}, $hGuard{"dir"}{"c"}])};
+            $hGuard{"dir"} = { "r" => $newR, "c" => $newC };
         }
     }
 
     return scalar(keys %hSeen);
 }
 
-# sub part2 {
-#     my ($self, $sInput) = @_;
-#     # Solution...
-# }
+
+sub part2 {
+    my ($self, $sInput) = @_;
+    my %hGuard = (
+        "pos" => { "r" => -1, "c" => -1 },
+        "dir" => { "r" => -1, "c" => 0 },  # Starting direction (up)
+    );    
+    my @aaWalkable;
+    my @aLines = split(/\n/, $sInput);
+    for my $ir ( 0 .. scalar(@aLines) - 1 ) {
+        my @aRow = split(//, $aLines[$ir]);
+        my @aWalkable;
+        for my $ic ( 0 .. scalar(@aRow) - 1 ) {
+            if ($aRow[$ic] eq '^') {
+                $hGuard{"pos"} = { "r" => $ir, "c" => $ic };
+                push(@aWalkable, 1);
+            } else {
+                my $bWalkable = ($aRow[$ic] eq '#') ? 0 : 1;
+                push(@aWalkable, $bWalkable);
+            }
+        }
+        push(@aaWalkable, [@aWalkable]);
+    }
+
+    my $iRows = scalar(@aaWalkable);
+    my $iCols = scalar($aaWalkable[0]);
+    for my $ir ( 0 .. $iRows - 1 ) {
+        for my $ic ( 0 .. $iCols - 1 ) {
+            next if (!$aaWalkable[$ir]->[$ic]);
+            next if ($ir == $hGuard{"pos"}{"r"} && $ic == $hGuard{"pos"}{"c"});
+            my %hHare = (
+                "pos" => { "r" => $hGuard{"pos"}{"r"}, "c" => $hGuard{"pos"}{"c"} },
+                "dir" => { "r" => $hGuard{"dir"}{"r"}, "c" => $hGuard{"dir"}{"c"} }, 
+            );
+            my %hTortoise = (
+                "pos" => { "r" => $hGuard{"pos"}{"r"}, "c" => $hGuard{"pos"}{"c"} },
+                "dir" => { "r" => $hGuard{"dir"}{"r"}, "c" => $hGuard{"dir"}{"c"} }, 
+            );
+
+            # TODO... tortoise and the hare!
+            while ($hHare{"pos"}{"r"} >= 0 && $hHare{"pos"}{"r"} < $iRows
+                && $hHare{"pos"}{"c"} >= 0 && $hHare{"pos"}{"c"} < $iCols) {
+                my $sKey = $hHare{"pos"}{"r"} . "," . $hHare{"pos"}{"c"};
+                my $iTargetR = $hHare{"pos"}{"r"} + $hHare{"dir"}{"r"};
+                my $iTargetC = $hHare{"pos"}{"c"} + $hHare{"dir"}{"c"};
+                last if ($iTargetR < 0 || $iTargetR >= $iRows || $iTargetC < 0 || $iTargetC >= $iCols);
+                my $bTargetWalkable = $aaWalkable[$iTargetR]->[$iTargetC];
+                if ($bTargetWalkable) {
+                    $hHare{"pos"}{"r"} = $iTargetR;
+                    $hHare{"pos"}{"c"} = $iTargetC;
+                } else {
+                    my ($newR, $newC) = @{turn_right([$hHare{"dir"}{"r"}, $hHare{"dir"}{"c"}])};
+                    $hHare{"dir"} = { "r" => $newR, "c" => $newC };
+                }
+            }
+        } 
+    }
+
+    return -1;
+}
 
 1;
