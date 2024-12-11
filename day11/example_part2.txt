@@ -1,4 +1,4 @@
 # Input:
-example_input_here
+125 17
 # Output:
-example_output_here
+65601038650482
