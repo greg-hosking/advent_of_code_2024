@@ -84,24 +84,25 @@ sub part2 {
     }
 
     my $iRows = scalar(@aaWalkable);
-    my $iCols = scalar($aaWalkable[0]);
+    my $iCols = scalar(@{$aaWalkable[0]});
+    my $iObstructionPositions = 0;
     for my $ir ( 0 .. $iRows - 1 ) {
         for my $ic ( 0 .. $iCols - 1 ) {
             next if (!$aaWalkable[$ir]->[$ic]);
             next if ($ir == $hGuard{"pos"}{"r"} && $ic == $hGuard{"pos"}{"c"});
             my %hHare = (
-                "pos" => { "r" => $hGuard{"pos"}{"r"}, "c" => $hGuard{"pos"}{"c"} },
-                "dir" => { "r" => $hGuard{"dir"}{"r"}, "c" => $hGuard{"dir"}{"c"} }, 
+                "pos"   => { "r" => $hGuard{"pos"}{"r"}, "c" => $hGuard{"pos"}{"c"} },
+                "dir"   => { "r" => $hGuard{"dir"}{"r"}, "c" => $hGuard{"dir"}{"c"} },
+                "walks" => 0,
             );
             my %hTortoise = (
                 "pos" => { "r" => $hGuard{"pos"}{"r"}, "c" => $hGuard{"pos"}{"c"} },
-                "dir" => { "r" => $hGuard{"dir"}{"r"}, "c" => $hGuard{"dir"}{"c"} }, 
+                "dir" => { "r" => $hGuard{"dir"}{"r"}, "c" => $hGuard{"dir"}{"c"} },
+                "shouldWalk" => 0, 
             );
-
-            # TODO... tortoise and the hare!
+            $aaWalkable[$ir]->[$ic] = 0; # Place the obstruction
             while ($hHare{"pos"}{"r"} >= 0 && $hHare{"pos"}{"r"} < $iRows
                 && $hHare{"pos"}{"c"} >= 0 && $hHare{"pos"}{"c"} < $iCols) {
-                my $sKey = $hHare{"pos"}{"r"} . "," . $hHare{"pos"}{"c"};
                 my $iTargetR = $hHare{"pos"}{"r"} + $hHare{"dir"}{"r"};
                 my $iTargetC = $hHare{"pos"}{"c"} + $hHare{"dir"}{"c"};
                 last if ($iTargetR < 0 || $iTargetR >= $iRows || $iTargetC < 0 || $iTargetC >= $iCols);
@@ -109,15 +110,40 @@ sub part2 {
                 if ($bTargetWalkable) {
                     $hHare{"pos"}{"r"} = $iTargetR;
                     $hHare{"pos"}{"c"} = $iTargetC;
+                    $hHare{"walks"}++;
+                    $hTortoise{"shouldWalk"} = 1 if ($hHare{"walks"} % 2 == 0);
                 } else {
                     my ($newR, $newC) = @{turn_right([$hHare{"dir"}{"r"}, $hHare{"dir"}{"c"}])};
                     $hHare{"dir"} = { "r" => $newR, "c" => $newC };
+                    redo;
+                }
+
+                # Detect loop...
+                if ($hHare{"pos"}{"r"} == $hTortoise{"pos"}{"r"} && $hHare{"pos"}{"c"} == $hTortoise{"pos"}{"c"} 
+                 && $hHare{"dir"}{"r"} == $hTortoise{"dir"}{"r"} && $hHare{"dir"}{"c"} == $hTortoise{"dir"}{"c"}) {
+                    $iObstructionPositions++;
+                    last;
+                }
+
+                while ($hTortoise{"shouldWalk"}) {
+                    $iTargetR = $hTortoise{"pos"}{"r"} + $hTortoise{"dir"}{"r"};
+                    $iTargetC = $hTortoise{"pos"}{"c"} + $hTortoise{"dir"}{"c"};
+                    $bTargetWalkable = $aaWalkable[$iTargetR]->[$iTargetC];
+                    if ($bTargetWalkable) {
+                        $hTortoise{"pos"}{"r"} = $iTargetR;
+                        $hTortoise{"pos"}{"c"} = $iTargetC;
+                        $hTortoise{"shouldWalk"} = 0;
+                    } else {
+                        my ($newR, $newC) = @{turn_right([$hTortoise{"dir"}{"r"}, $hTortoise{"dir"}{"c"}])};
+                        $hTortoise{"dir"} = { "r" => $newR, "c" => $newC };
+                    }
                 }
             }
+            $aaWalkable[$ir]->[$ic] = 1; # Remove the obstruction
         } 
     }
 
-    return -1;
+    return $iObstructionPositions;
 }
 
 1;
