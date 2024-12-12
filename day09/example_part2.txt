@@ -1,4 +1,4 @@
 # Input:
-example_input_here
+2333133121414131402
 # Output:
-example_output_here
+2858
