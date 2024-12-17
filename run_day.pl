@@ -8,7 +8,7 @@ use Getopt::Long;
 use lib 'C:\advent_of_code_2024';
 
 sub main {
-    my ($iDay, $iPart, $bExampleOnly, $bNoSubmit) = parse_arguments();
+    my ($iDay, $iPart, $bSubmit) = parse_arguments();
 
     # Load the module for the specific day
     my $oDay = load_day_module($iDay, $iPart);
@@ -28,12 +28,6 @@ sub main {
     if ($sExampleResult eq $sExampleOutput) {
         print "[SUCCESS] Example passed!\n";
 
-        if ($bExampleOnly) {
-            print "[INFO] Running in example-only mode. Skipping puzzle input and answer submission.\n";
-            print "[INFO] Exiting...\n";
-            return;
-        }
-
         print "[INFO] Fetching puzzle input...\n";
         my $sInput = fetch_input($iDay);
 
@@ -44,14 +38,12 @@ sub main {
         print "$sOutput\n";
         print "-----------------------------------\n";
 
-        if ($bNoSubmit) {
-            print "[INFO] Running in no-submit mode. Skipping answer submission.\n";
-            print "[INFO] Exiting...\n";
-            return;
+        if ($bSubmit) {
+            print "\n[INFO] Submitting answer...\n";
+            submit_answer($iDay, $iPart, $sOutput);
+        } else {
+            print "[INFO] Submission skipped. Run with --submit to submit the answer.\n";
         }
-
-        print "\n[INFO] Submitting answer...\n";
-        submit_answer($iDay, $iPart, $sOutput);
     } else {
         print "[FAILURE] Example failed!\n";
         print "[EXPECTED]: $sExampleOutput\n";
@@ -60,24 +52,25 @@ sub main {
 }
 
 sub parse_arguments {
-    my ($iDay, $iPart, $bExampleOnly, $bNoSubmit, $bHelp);
+    my ($iDay, $iPart, $bSubmit, $bHelp);
     GetOptions(
-        'day=i'        => \$iDay,
-        'part=i'       => \$iPart,
-        'example-only' => \$bExampleOnly,
-        'no-submit'    => \$bNoSubmit,
-        'help'         => \$bHelp,
+        'day=i'    => \$iDay,
+        'd=i'      => \$iDay,
+        'part=i'   => \$iPart,
+        'p=i'      => \$iPart,
+        'submit'   => \$bSubmit,
+        'help'     => \$bHelp,
     ) or show_usage();
 
     show_help() if $bHelp;
     show_usage() unless $iDay && $iDay >= 1 && $iDay <= 25;
     show_usage() unless $iPart && ($iPart == 1 || $iPart == 2);
 
-    return ($iDay, $iPart, $bExampleOnly, $bNoSubmit);
+    return ($iDay, $iPart, $bSubmit);
 }
 
 sub show_usage {
-    print "Usage: perl run_day.pl --day <day_number> --part <part_number> [--example-only] [--help]\n";
+    print "Usage: perl run_day.pl --day <day_number> --part <part_number> [--submit] [--help]\n";
     exit;
 }
 
@@ -86,14 +79,15 @@ sub show_help {
 Usage: perl run_day.pl --day <day_number> --part <part_number> [OPTIONS]
 
 Options:
-  --day           Specify the day number (1-25).
-  --part          Specify the part number (1 or 2).
-  --example-only  Run only the example test and exit.
-  --help          Display this help message.
+  --day         Specify the day number (1-25).
+  --part        Specify the part number (1 or 2).
+  --submit      Submit the answer after solving. Defaults to skipping submission.
+  --help        Display this help message.
 
 Examples:
-  perl run_day.pl --day 3 --part 1
-  perl run_day.pl --day 5 --part 2 --example-only
+  perl run_day.pl --day 3 --part 1 --submit
+  perl run_day.pl --day 5 --part 2 --submit
+  perl run_day.pl --day 5 --part 2
 
 HELP
     exit;
@@ -172,15 +166,11 @@ sub submit_answer {
         if ($sContent =~ /<article><p>(.*?)<\/p><\/article>/s) {
             my $sMessage = $1;
             $sMessage =~ s/<[^>]+>//g;
-            # $sMessage =~ s/\[.*?\]//g;
-            # $sMessage =~ s/\s+/ /g;
-
             print "[RESPONSE] $sMessage\n";
         }
     } else {
         die "[ERROR] Submitting answer failed: " . $oResp->status_line . "\n";
     }
 }
-
 
 main();
