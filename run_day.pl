@@ -24,7 +24,7 @@ sub main {
 
     print "\n[INFO] Running example...\n";
     my $sPartSub = "part$iPart";
-    my $sExampleResult = $oDay->$sPartSub($sExampleInput);
+    my $sExampleResult = $oDay->$sPartSub($sExampleInput, 1);
     if ($sExampleResult eq $sExampleOutput) {
         print "[SUCCESS] Example passed!\n";
 
