@@ -79,8 +79,7 @@ sub part1 {
 }
 
 sub part2 {
-    my ($self, $sInput, $bIsExample) = @_;
-    # return -1 if (!$bIsExample);
+    my ($self, $sInput) = @_;
 
     my @aRobots;
     foreach my $sLine (split(/\n/, $sInput)) {
@@ -100,34 +99,34 @@ sub part2 {
         });
     }
 
-    my $iRows = ($bIsExample) ? 7 : 103;
-    my $iCols = ($bIsExample) ? 11 : 101;
+    my $iRows = 103;
+    my $iCols = 101;
 
-    for my $iSecond (1..100) {
-        # Update
-        foreach my $phRobot (@aRobots) {
-            my $iNewX = $phRobot->{pos}->{x} + $phRobot->{vel}->{x};
-            my $iNewY = $phRobot->{pos}->{y} + $phRobot->{vel}->{y};
-            if ($iNewX < 0) {
-                $iNewX = $iCols + $iNewX;
-            } elsif ($iNewX > $iCols - 1) {
-                $iNewX -= $iCols;
-            }
-            if ($iNewY < 0) {
-                $iNewY = $iRows + $iNewY;
-            } elsif ($iNewY > $iRows - 1) {
-                $iNewY -= $iRows;
-            }
-            $phRobot->{pos}->{x} = $iNewX;
-            $phRobot->{pos}->{y} = $iNewY;
-        }
+    # for my $iSecond (1..100) {
+    #     # Update
+    #     foreach my $phRobot (@aRobots) {
+    #         my $iNewX = $phRobot->{pos}->{x} + $phRobot->{vel}->{x};
+    #         my $iNewY = $phRobot->{pos}->{y} + $phRobot->{vel}->{y};
+    #         if ($iNewX < 0) {
+    #             $iNewX = $iCols + $iNewX;
+    #         } elsif ($iNewX > $iCols - 1) {
+    #             $iNewX -= $iCols;
+    #         }
+    #         if ($iNewY < 0) {
+    #             $iNewY = $iRows + $iNewY;
+    #         } elsif ($iNewY > $iRows - 1) {
+    #             $iNewY -= $iRows;
+    #         }
+    #         $phRobot->{pos}->{x} = $iNewX;
+    #         $phRobot->{pos}->{y} = $iNewY;
+    #     }
 
-        my %hRobotsAtCoords;
-        foreach my $phRobot (@aRobots) {
-            my $sKey = $phRobot->{pos}->{x} . "," . $phRobot->{pos}->{y};
-            $hRobotsAtCoords{$sKey}++;
-        }
-    }
+    #     my %hRobotsAtCoords;
+    #     foreach my $phRobot (@aRobots) {
+    #         my $sKey = $phRobot->{pos}->{x} . "," . $phRobot->{pos}->{y};
+    #         $hRobotsAtCoords{$sKey}++;
+    #     }
+    # }
 
     return -1;
 }

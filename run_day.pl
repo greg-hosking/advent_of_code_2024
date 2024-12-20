@@ -15,39 +15,40 @@ sub main {
 
     # Parse example input/output
     my $sExampleFn = "C:/advent_of_code_2024/day" . sprintf("%02d", $iDay) . "/example_part$iPart.txt";
-    my ($sExampleInput, $sExampleOutput) = parse_example($sExampleFn);
+    my ($sExampleInput, $sExampleOutput) = eval { parse_example($sExampleFn) };
 
-    print "\n";
-    print "====== Advent of Code 2024 ======\n";
-    print "Day $iDay, Part $iPart\n";
-    print "=================================\n";
-
-    print "\n[INFO] Running example...\n";
-    my $sPartSub = "part$iPart";
-    my $sExampleResult = $oDay->$sPartSub($sExampleInput, 1);
-    if ($sExampleResult eq $sExampleOutput) {
-        print "[SUCCESS] Example passed!\n";
-
-        print "[INFO] Fetching puzzle input...\n";
-        my $sInput = fetch_input($iDay);
-
-        print "[INFO] Running solution...\n";
-        my $sOutput = $oDay->$sPartSub($sInput);
-        print "\n[SOLUTION] Result for Day $iDay, Part $iPart:\n";
-        print "-----------------------------------\n";
-        print "$sOutput\n";
-        print "-----------------------------------\n";
-
-        if ($bSubmit) {
-            print "\n[INFO] Submitting answer...\n";
-            submit_answer($iDay, $iPart, $sOutput);
-        } else {
-            print "[INFO] Submission skipped. Run with --submit to submit the answer.\n";
-        }
+    if ($@) {
+        print "[WARNING] Example file not found or invalid: $@\n";
+        print "[INFO] Continuing without example...\n";
     } else {
-        print "[FAILURE] Example failed!\n";
-        print "[EXPECTED]: $sExampleOutput\n";
-        print "[ACTUAL]:   $sExampleResult\n";
+        print "\n[INFO] Running example...\n";
+        my $sPartSub = "part$iPart";
+        my $sExampleResult = $oDay->$sPartSub($sExampleInput, 1);
+        if ($sExampleResult eq $sExampleOutput) {
+            print "[SUCCESS] Example passed!\n";
+        } else {
+            print "[FAILURE] Example failed!\n";
+            print "[EXPECTED]: $sExampleOutput\n";
+            print "[ACTUAL]:   $sExampleResult\n";
+        }
+    }
+
+    print "[INFO] Fetching puzzle input...\n";
+    my $sInput = fetch_input($iDay);
+
+    print "[INFO] Running solution...\n";
+    my $sPartSub = "part$iPart";
+    my $sOutput = $oDay->$sPartSub($sInput);
+    print "\n[SOLUTION] Result for Day $iDay, Part $iPart:\n";
+    print "-----------------------------------\n";
+    print "$sOutput\n";
+    print "-----------------------------------\n";
+
+    if ($bSubmit) {
+        print "\n[INFO] Submitting answer...\n";
+        submit_answer($iDay, $iPart, $sOutput);
+    } else {
+        print "[INFO] Submission skipped. Run with --submit to submit the answer.\n";
     }
 }
 
