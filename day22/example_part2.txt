@@ -1,4 +1,7 @@
 # Input:
-example_input_here
+1
+2
+3
+2024
 # Output:
-example_output_here
+23

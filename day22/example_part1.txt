@@ -1,4 +1,7 @@
 # Input:
-example_input_here
+1
+10
+100
+2024
 # Output:
-example_output_here
+37327623
