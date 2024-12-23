@@ -30,6 +30,7 @@ sub main {
             print "[FAILURE] Example failed!\n";
             print "[EXPECTED]: $sExampleOutput\n";
             print "[ACTUAL]:   $sExampleResult\n";
+            return;
         }
     }
 
