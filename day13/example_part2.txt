@@ -1,4 +1,0 @@
-# Input:
-example_input_here
-# Output:
-example_output_here
